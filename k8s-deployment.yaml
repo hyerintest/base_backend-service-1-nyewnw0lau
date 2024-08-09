@@ -1,0 +1,80 @@
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: backend-service-1-nyewnw0lau
+  name: backend-service-1-nyewnw0lau
+  namespace: 
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: backend-service-1-nyewnw0lau
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-backend-service-1-nyewnw0lau
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ''
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-service-1-nyewnw0lau
+  namespace: 
+spec:
+  selector:
+    matchLabels:
+      app: backend-service-1-nyewnw0lau
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: backend-service-1-nyewnw0lau
+      annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: '8080'
+        prometheus.io/scheme: http
+        prometheus.io/scrape: 'true'
+    spec:
+      containers:
+        - name: backend-service-1-nyewnw0lau-container
+          image: //backend-service-1-nyewnw0lau:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: pv-backend-service-1-nyewnw0lau-log
+              mountPath: /logs
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: default
+            - name: SERVICE_PROTOCOL
+              value: http
+            - name: SERVICE_HOST
+              value: localhost
+            - name: SERVICE_PATH
+              value: 
+      volumes:
+        - name:  pv-backend-service-1-nyewnw0lau-log
+          persistentVolumeClaim:
+            claimName: pvc-backend-service-1-nyewnw0lau
+      imagePullSecrets:
+        - name: regcred
