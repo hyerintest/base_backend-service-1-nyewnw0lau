@@ -22,3 +22,4 @@
     `{SRC_ROOT}$ mvn package -Prelease`
     
 
+리드미 수정
